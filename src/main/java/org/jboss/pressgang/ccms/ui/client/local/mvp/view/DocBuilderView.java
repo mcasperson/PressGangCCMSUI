@@ -64,6 +64,9 @@ public class DocBuilderView extends BaseTemplateView implements DocBuilderPresen
             myUrl += "/" + id;
         }
 
-        iFrame.setUrl(myUrl);
+        /*
+            The hidenav query parameter is used to indicate that the top nav bar should not be shown
+         */
+        iFrame.setUrl(myUrl + "?hidenav=true");
     }
 }
