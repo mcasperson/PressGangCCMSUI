@@ -21,12 +21,19 @@ package org.jboss.pressgang.ccms.ui.client.local.mvp.view;
 
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.user.client.ui.Frame;
+import org.jboss.pressgang.ccms.rest.v1.elements.RESTServerSettingsV1;
+import org.jboss.pressgang.ccms.ui.client.local.callbacks.AllServerDetailsCallback;
+import org.jboss.pressgang.ccms.ui.client.local.callbacks.ServerDetailsCallback;
+import org.jboss.pressgang.ccms.ui.client.local.callbacks.ServerSettingsCallback;
 import org.jboss.pressgang.ccms.ui.client.local.constants.Constants;
 import org.jboss.pressgang.ccms.ui.client.local.mvp.presenter.DocBuilderPresenter;
 import org.jboss.pressgang.ccms.ui.client.local.mvp.view.base.BaseTemplateView;
 import org.jboss.pressgang.ccms.ui.client.local.resources.strings.PressGangCCMSUI;
+import org.jboss.pressgang.ccms.ui.client.local.server.ServerDetails;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Map;
 
 public class DocBuilderView extends BaseTemplateView implements DocBuilderPresenter.Display {
 
@@ -50,12 +57,13 @@ public class DocBuilderView extends BaseTemplateView implements DocBuilderPresen
         super.initialiseShortcuts();
     }
 
-    public void display(@Nullable final Integer id) {
-        String url = Constants.DOCBUILDER_SERVER;
+    public void display(@Nullable final Integer id, @NotNull final String url) {
+        String myUrl = url;
+
         if (id != null) {
-            url += "/" + id;
+            myUrl += "/" + id;
         }
 
-        iFrame.setUrl(url);
+        iFrame.setUrl(myUrl);
     }
 }

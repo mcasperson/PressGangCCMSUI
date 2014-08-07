@@ -28,6 +28,9 @@ import javax.inject.Inject;
 import org.jboss.pressgang.ccms.rest.v1.collections.contentspec.RESTCSNodeCollectionV1;
 import org.jboss.pressgang.ccms.rest.v1.collections.contentspec.items.RESTCSNodeCollectionItemV1;
 import org.jboss.pressgang.ccms.rest.v1.constants.CommonFilterConstants;
+import org.jboss.pressgang.ccms.rest.v1.elements.RESTServerSettingsV1;
+import org.jboss.pressgang.ccms.ui.client.local.callbacks.ServerSettingsCallback;
+import org.jboss.pressgang.ccms.ui.client.local.constants.Constants;
 import org.jboss.pressgang.ccms.ui.client.local.mvp.presenter.base.BaseTemplatePresenter;
 import org.jboss.pressgang.ccms.ui.client.local.mvp.presenter.base.BaseTemplatePresenterInterface;
 import org.jboss.pressgang.ccms.ui.client.local.mvp.view.base.BaseTemplateViewInterface;
@@ -45,7 +48,7 @@ public class DocBuilderPresenter extends BaseTemplatePresenter implements BaseTe
     public static final String HISTORY_TOKEN = "DocBuilderView";
 
     public interface Display extends BaseTemplateViewInterface {
-        void display(@Nullable final Integer id);
+        void display(@Nullable final Integer id, @NotNull final String url);
     }
 
     @Inject
@@ -72,7 +75,15 @@ public class DocBuilderPresenter extends BaseTemplatePresenter implements BaseTe
 
     @Override
     public void bindExtended() {
-        display.display(id);
+        getServerSettings(new ServerSettingsCallback() {
+              @Override
+              public void serverSettingsLoaded(@NotNull RESTServerSettingsV1 serverSettings) {
+                  final String url = serverSettings.getDocBuilderUrl() == null ? Constants.DOCBUILDER_SERVER : serverSettings.getDocBuilderUrl();
+                  display.display(id, url);
+              }
+          });
+
+
 
         loadAdditionalDisplayedItemData(id);
     }
@@ -92,33 +103,32 @@ public class DocBuilderPresenter extends BaseTemplatePresenter implements BaseTe
         // Make the window title display the id of the content spec
         if (id != null) {
             /*
-                Run an additional query to get the title of the spec
-             */
+            Run an additional query to get the title of the spec
+            */
             getFailOverRESTCall().performRESTCall(
-                    FailOverRESTCallDatabase.getCSNodesWithFromQuery("query;" +
-                            CommonFilterConstants.CONTENT_SPEC_NODE_TYPE_FILTER_VAR + "=" + CommonConstants.CS_NODE_META_DATA + ";" +
-                            CommonFilterConstants.CONTENT_SPEC_NODE_TITLE_FILTER_VAR + "=" + CommonConstants.CS_TITLE_TITLE
-                            + ";" +
-                            CommonFilterConstants.CONTENT_SPEC_IDS_FILTER_VAR + "=" + id),
-                    new RESTCallBack<RESTCSNodeCollectionV1>() {
-                        @Override
-                        public void success(@NotNull final RESTCSNodeCollectionV1 retValue) {
-                            checkArgument(retValue.getItems() != null, "The returned collection should have expanded items");
+                FailOverRESTCallDatabase.getCSNodesWithFromQuery("query;" +
+                        CommonFilterConstants.CONTENT_SPEC_NODE_TYPE_FILTER_VAR + "=" + CommonConstants.CS_NODE_META_DATA + ";" +
+                        CommonFilterConstants.CONTENT_SPEC_NODE_TITLE_FILTER_VAR + "=" + CommonConstants.CS_TITLE_TITLE
+                        + ";" +
+                        CommonFilterConstants.CONTENT_SPEC_IDS_FILTER_VAR + "=" + id),
+                new RESTCallBack<RESTCSNodeCollectionV1>() {
+                    @Override
+                    public void success(@NotNull final RESTCSNodeCollectionV1 retValue) {
+                        checkArgument(retValue.getItems() != null, "The returned collection should have expanded items");
 
-                            /*
-                                The query may return title and subtitle
-                             */
-                            for (final RESTCSNodeCollectionItemV1 node : retValue.getItems())  {
-                                if (node.getItem().getTitle().equalsIgnoreCase(CommonConstants.CS_TITLE_TITLE)) {
-                                    GWTUtilities.setBrowserWindowTitle(node.getItem().getAdditionalText() + " - " +
-                                                    PressGangCCMSUI.INSTANCE.PressGangCCMS());
-                                    break;
-                                }
+                        /*
+                        The query may return title and subtitle
+                        */
+                        for (final RESTCSNodeCollectionItemV1 node : retValue.getItems()) {
+                            if (node.getItem().getTitle().equalsIgnoreCase(CommonConstants.CS_TITLE_TITLE)) {
+                                GWTUtilities.setBrowserWindowTitle(node.getItem().getAdditionalText() + " - " +
+                                        PressGangCCMSUI.INSTANCE.PressGangCCMS());
+                                break;
                             }
                         }
                     }
+                }
             );
-
         }
     }
 }
